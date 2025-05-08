@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    'debug_toolbar',
 
     # My APPS
     'recipesAPI',
@@ -72,6 +73,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+
+    # Debug-Tool-Bar
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 
     # Django-Cors-Headers
     'corsheaders.middleware.CorsMiddleware',
@@ -175,3 +179,8 @@ SIMPLE_JWT = {
     'SIGNING_KEY': env('SECRET_KEY_JWT'),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# Debug-Tool-Bar
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
