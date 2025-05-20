@@ -17,14 +17,12 @@ class UserViewSet(ModelViewSet):
         super().initial(request, *args, **kwargs)
 
         forbidden = ['GET', 'PATCH', 'DELETE']
-        endswith_me = request.path.endswith('/me/') or \
-            request.path.endswith('/me')
-        endswith_me = request.path.rstrip('/').endswith('/me/')
+        endswith_me = request.path.rstrip('/').endswith('/me')
 
         if request.method in forbidden and not endswith_me:
             raise MethodNotAllowed(
                 method=request.method,
-                detail='For GET, PATCH, DELETE use /api/user/me'
+                detail='For GET, PATCH, DELETE use /api/user/me/'
             )
 
     def get_permissions(self):
