@@ -1,42 +1,44 @@
 from django.urls import path
+from rest_framework.routers import SimpleRouter
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView, TokenVerifyView)
 
 from recipesAPI import views
 
 SITE_NAME = 'receitolas'
-app_name = 'recipes'
+app_name = 'recipesAPI'
 
+recipes_api_router = SimpleRouter()
+
+
+# User Recipes
+recipes_api_router.register(
+    'api/recipes/user',
+    views.UserRecipesViewSet,
+    basename='user-recipes'
+)
+
+# Public Recipes
+recipes_api_router.register(
+    'api/recipes',
+    views.PublicRecipesViewSet,
+    basename='public-recipes'
+)
+
+# Categories
+recipes_api_router.register(
+    'api/categories',
+    views.GetCategoriesViewSet,
+    basename='categories'
+)
+
+# User CRUD
+recipes_api_router.register(
+    'api/user',
+    views.UserViewSet,
+    basename='user'
+)
 urlpatterns = [
-    # Recipes
-    path("recipes/", views.GetRecipesView.as_view(), name='recipes'),
-
-    # User CRUD
-    path(
-        "user/register/",
-        views.UserRegisterView.as_view(),
-        name='register'
-    ),
-    path(
-        "user/read/<int:pk>",
-        views.GetUserView.as_view(),
-        name='get_user'
-    ),
-    path(
-        "user/edit_profile/<int:pk>",
-        views.ProfileUserUpdate.as_view(),
-        name='edit_profile'
-    ),
-    path(
-        "user/edit_account/<int:pk>",
-        views.SecurityUserUpdate.as_view(),
-        name='edit_account'),
-    path(
-        "user/delete/<int:pk>",
-        views.DeleteUserView.as_view(),
-        name='delete'
-    ),
-
     # Django JWT Token
     path(
         'recipes/api/token/',
@@ -54,3 +56,5 @@ urlpatterns = [
         name='token_verify'
     ),
 ]
+
+urlpatterns += recipes_api_router.urls
