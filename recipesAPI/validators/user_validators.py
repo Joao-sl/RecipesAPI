@@ -4,11 +4,21 @@ from rest_framework import serializers
 from utils.password import strong_password_check
 
 
+def min_length(value):
+    if len(value) < 3:
+        raise serializers.ValidationError(
+            'This field must have be at least 3 characters'
+        )
+    return value
+
+
 def validate_username(value):
     if len(value) < 3:
         raise serializers.ValidationError(
             'Username must be have at least 3 characters'
         )
+    elif User.objects.filter(username=value):
+        raise serializers.ValidationError('Username already registered')
     return value
 
 
