@@ -71,4 +71,4 @@ class UserViewSet(ModelViewSet):
         elif request.method == 'DELETE':
             self.perform_destroy(user)
 
-            return Response(status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_204_NO_CONTENT)

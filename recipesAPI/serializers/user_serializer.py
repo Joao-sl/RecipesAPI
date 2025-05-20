@@ -2,10 +2,11 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from recipesAPI.models import UserProfile
+from recipesAPI.serializers.common_serializer import StrictPayloadSerializer
 from recipesAPI.validators import user_validators
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(StrictPayloadSerializer):
     first_name = serializers.CharField(
         max_length=20,
         required=True,
@@ -29,7 +30,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return user_validators.min_length(value)
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(StrictPayloadSerializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True)
     email = serializers.EmailField(required=True)
@@ -57,7 +58,7 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class UpdateUserSerializer(serializers.ModelSerializer):
+class UpdateUserSerializer(StrictPayloadSerializer):
     profile = UserProfileSerializer(required=False)
     new_password = serializers.CharField(required=False, write_only=True)
     password = serializers.CharField(required=True, write_only=True)
@@ -90,8 +91,6 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         return user_validators.validate_email(value)
 
     def update(self, instance, validated_data):
-        user = self.context['request'].user
-
         profile_data = validated_data.pop('profile', None)
         new_password = validated_data.pop('new_password', None)
         validated_data.pop('password')
@@ -103,8 +102,10 @@ class UpdateUserSerializer(serializers.ModelSerializer):
             setattr(instance, field, value)
 
         if profile_data:
-            if not user.profile:
-                UserProfile.objects.create(user=user, **profile_data)
+            profile = getattr(instance, 'profile', None)
+
+            if not profile:
+                UserProfile.objects.create(user=instance, **profile_data)
             else:
                 for field, value in profile_data.items():
                     setattr(instance.profile, field, value)
