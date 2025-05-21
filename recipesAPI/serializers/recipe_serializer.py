@@ -38,7 +38,7 @@ class RecipeReadSerializer(StrictPayloadSerializer):
         fields = [
             'title', 'description', 'preparation_time', 'ingredients', 'preparation_steps',
             'servings', 'categories', 'slug', 'author', 'tips', 'public', 'admin_approved',
-            'created_at', 'updated_at', 'cover',
+            'approved_by', 'created_at', 'updated_at', 'cover',
         ]
 
 
@@ -115,3 +115,9 @@ class RecipeWriteSerializer(StrictPayloadSerializer):
             instance.categories.set(categories)
 
         return instance
+
+
+class AdminRecipeWriteSerializer(RecipeWriteSerializer):
+    class Meta(RecipeWriteSerializer.Meta):
+        fields = list(RecipeWriteSerializer.Meta.fields) + \
+            ['public', 'admin_approved']

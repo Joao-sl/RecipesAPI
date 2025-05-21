@@ -1,15 +1,16 @@
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from recipesAPI.filters import CategoryFilter
+from recipesAPI.mixins import AdminApprovalMixin
 from recipesAPI.models import Category, Recipe
 from recipesAPI.permissions import CanEditOnlyUnprovedRecipes
-from recipesAPI.serializers.recipe_serializer import (CategorySerializer,
-                                                      RecipeReadSerializer,
-                                                      RecipeWriteSerializer)
+from recipesAPI.serializers.recipe_serializer import (
+    AdminRecipeWriteSerializer, CategorySerializer, RecipeReadSerializer,
+    RecipeWriteSerializer)
 
 
 class UserRecipesViewSet(ModelViewSet):
@@ -37,7 +38,12 @@ class UserRecipesViewSet(ModelViewSet):
             instance,
             context=self.get_serializer_context()
         )
-        return Response(read_serializer.data, status=status.HTTP_201_CREATED)
+
+        headers = self.get_success_headers(read_serializer.data)
+
+        return Response(
+            read_serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def partial_update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', True)
@@ -66,7 +72,61 @@ class PublicRecipesViewSet(ReadOnlyModelViewSet):
 
 
 class GetCategoriesViewSet(ReadOnlyModelViewSet):
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('-id')
     serializer_class = CategorySerializer
     filterset_class = CategoryFilter
     lookup_field = 'slug'
+
+
+class AdminRecipesViewSet(ModelViewSet, AdminApprovalMixin):
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    queryset = Recipe.objects.get_all_recipes()  # type: ignore
+    lookup_field = 'slug'
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return RecipeReadSerializer
+        return AdminRecipeWriteSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save(
+            author=request.user,
+            approved_by=request.user,
+            admin_approved=True
+        )
+
+        read_serializer = RecipeReadSerializer(
+            instance, context=self.get_serializer_context()
+        )
+        headers = self.get_success_headers(serializer.data)
+
+        return Response(
+            read_serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
+
+    def partial_update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)
+        write_serializer = self.get_serializer(
+            self.get_object(),
+            data=request.data,
+            partial=partial
+        )
+        write_serializer.is_valid(raise_exception=True)
+        instance_obj = self.get_object()
+
+        instance = self.perform_approval_logic(
+            instance_obj,
+            write_serializer,
+            request.user
+        )
+
+        read_serializer = RecipeReadSerializer(
+            instance,
+            context=self.get_serializer_context()
+        )
+
+        return Response(read_serializer.data)

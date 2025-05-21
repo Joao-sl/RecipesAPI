@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+from typing import cast
 
 import environ
 
@@ -29,6 +30,8 @@ env = environ.Env(
     SECRET_KEY_JWT=(
         str, 'INSECURE(THIS IS NOT SAFE YOU MUST CHANGE THE VALUE IN .env FILE)'
     ),
+    ACCESS_TOKEN_LIFETIME=(int, 7200),
+    REFRESH_TOKEN_LIFETIME=(int, 120)
 )
 
 # Taking environments variables
@@ -178,8 +181,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=5),
+    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=cast(int, env('ACCESS_TOKEN_LIFETIME'))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=cast(int, env('REFRESH_TOKEN_LIFETIME'))),
     'BLACKLIST_AFTER_ROTATION': False,
     'SIGNING_KEY': env('SECRET_KEY_JWT'),
     'AUTH_HEADER_TYPES': ('Bearer',),

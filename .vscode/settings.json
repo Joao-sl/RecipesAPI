@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "corsheaders",
-        "receitolas"
+        "filterset",
+        "receitolas",
+        "simplejwt"
     ]
 }
