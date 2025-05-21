@@ -89,12 +89,13 @@ class Recipe(models.Model):
         User,
         models.SET_NULL,
         related_name='authored_recipes',
+        blank=True,
         null=True
     )
     approved_by = models.ForeignKey(
         User,
         models.SET_NULL,
-        related_name='approved_recipes',
+        related_name='approved_by',
         blank=True,
         null=True
     )

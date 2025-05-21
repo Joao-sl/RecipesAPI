@@ -11,6 +11,13 @@ app_name = 'recipesAPI'
 recipes_api_router = SimpleRouter()
 
 
+# Admin Recipes
+recipes_api_router.register(
+    'api/recipes/admin',
+    views.AdminRecipesViewSet,
+    basename='admin-recipes'
+)
+
 # User Recipes
 recipes_api_router.register(
     'api/recipes/user',
