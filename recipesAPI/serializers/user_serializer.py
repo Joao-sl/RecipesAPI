@@ -34,7 +34,7 @@ class UserSerializer(StrictPayloadSerializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True)
     email = serializers.EmailField(required=True)
-    profile = UserProfileSerializer(required=True)
+    profile = UserProfileSerializer(required=False)
 
     class Meta:
         model = User
@@ -52,9 +52,10 @@ class UserSerializer(StrictPayloadSerializer):
         return user_validators.validate_email(value)
 
     def create(self, validated_data):
-        profile_data = validated_data.pop('profile')
+        profile_data = validated_data.pop('profile', None)
         user = User.objects.create_user(**validated_data)
-        UserProfile.objects.create(user=user, **profile_data)
+        if profile_data:
+            UserProfile.objects.create(user=user, **profile_data)
         return user
 
 
