@@ -48,17 +48,17 @@ recipes_api_router.register(
 urlpatterns = [
     # Django JWT Token
     path(
-        'recipes/api/token/',
+        'user/token/',
         TokenObtainPairView.as_view(),
         name='token_obtain_pair'
     ),
     path(
-        'recipes/api/token/refresh/',
+        'user/token/refresh/',
         TokenRefreshView.as_view(),
         name='token_refresh'
     ),
     path(
-        'recipes/api/token/verify/',
+        'user/token/verify/',
         TokenVerifyView.as_view(),
         name='token_verify'
     ),
