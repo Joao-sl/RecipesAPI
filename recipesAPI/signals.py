@@ -1,9 +1,8 @@
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.text import slugify
 
-from recipesAPI.models import Recipe, UserProfile
+from recipesAPI.models import Recipe
 
 
 @receiver(post_save, sender=Recipe)
