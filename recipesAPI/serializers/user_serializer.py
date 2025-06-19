@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from PIL import Image
 from rest_framework import serializers
 
 from recipesAPI.models import UserProfile
@@ -7,15 +8,6 @@ from recipesAPI.validators import user_validators
 
 
 class UserProfileSerializer(StrictPayloadSerializer):
-    first_name = serializers.CharField(
-        max_length=20,
-        required=True,
-    )
-    last_name = serializers.CharField(
-        max_length=60,
-        required=False,
-    )
-
     class Meta:
         model = UserProfile
         fields = [
@@ -24,9 +16,6 @@ class UserProfileSerializer(StrictPayloadSerializer):
         ]
 
     def validate_first_name(self, value):
-        return user_validators.min_length(value)
-
-    def validate_last_name(self, value):
         return user_validators.min_length(value)
 
 
@@ -60,26 +49,35 @@ class UserSerializer(StrictPayloadSerializer):
 
 
 class UpdateUserSerializer(StrictPayloadSerializer):
+    avatar = serializers.ImageField(
+        source='profile.avatar',
+        required=False,
+        write_only=True
+    )
     profile = UserProfileSerializer(required=False)
     new_password = serializers.CharField(required=False, write_only=True)
-    password = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(required=False, write_only=True)
+    email = serializers.EmailField(required=False)
 
     class Meta:
         model = User
         fields = [
-            'username', 'password', 'new_password', 'email', 'profile'
+            'username', 'password', 'new_password', 'email', 'profile', 'avatar'
         ]
 
     def validate(self, attrs):
         user = self.context['request'].user
         password = attrs.get('password')
+        new_password = attrs.get('new_password')
+        email = attrs.get('email')
 
-        if password:
-            user_validators.current_password_check(user, attrs['password'])
-        else:
+        if (new_password or email) and not password:
             raise serializers.ValidationError(
                 {'password': 'This field is required'}
             )
+        if new_password or email:
+            user_validators.current_password_check(user, attrs['password'])
+
         return super().validate(attrs)
 
     def validate_username(self, value):
@@ -91,10 +89,28 @@ class UpdateUserSerializer(StrictPayloadSerializer):
     def validate_email(self, value):
         return user_validators.validate_email(value)
 
+    def validate_avatar(self, value):
+        max_size = 1 * 1024 * 1024
+
+        if value.size > max_size:
+            raise serializers.ValidationError(
+                f"The image max size is {max_size / (1024 * 1024)} MB.")
+
+        try:
+            with Image.open(value) as img:
+                img.verify()
+
+        except Exception:
+            raise serializers.ValidationError("This is not valid image")
+
+        value.seek(0)
+
+        return value
+
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', None)
         new_password = validated_data.pop('new_password', None)
-        validated_data.pop('password')
+        validated_data.pop('password', None)
 
         if new_password:
             instance.set_password(new_password)
@@ -102,16 +118,11 @@ class UpdateUserSerializer(StrictPayloadSerializer):
         for field, value in validated_data.items():
             setattr(instance, field, value)
 
-        if profile_data:
-            profile = getattr(instance, 'profile', None)
-
-            if not profile:
-                UserProfile.objects.create(user=instance, **profile_data)
-            else:
-                for field, value in profile_data.items():
-                    setattr(instance.profile, field, value)
-            instance.profile.save()
-
         instance.save()
+
+        profile, _ = UserProfile.objects.get_or_create(user=instance)
+        for field, value in profile_data.items():
+            setattr(profile, field, value)
+        profile.save()
 
         return instance
