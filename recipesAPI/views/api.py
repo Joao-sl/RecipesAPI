@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -76,6 +77,12 @@ class GetCategoriesViewSet(ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
     filterset_class = CategoryFilter
     lookup_field = 'slug'
+
+    @action(detail=False, methods=['get'], url_path='all')
+    def get_all(self, request):
+        categories = self.get_queryset()
+        serializer = self.get_serializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AdminRecipesViewSet(ModelViewSet, AdminApprovalMixin):
