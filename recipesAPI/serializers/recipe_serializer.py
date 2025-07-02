@@ -45,10 +45,7 @@ class RecipeReadSerializer(StrictPayloadSerializer):
 class RecipeWriteSerializer(StrictPayloadSerializer):
     ingredients = serializers.JSONField(write_only=True)
     preparation_steps = serializers.JSONField(write_only=True)
-    categories = serializers.ListField(
-        child=serializers.IntegerField(),
-        write_only=True
-    )
+    categories = serializers.JSONField(write_only=True)
 
     class Meta:
         model = Recipe
