@@ -121,8 +121,9 @@ class UpdateUserSerializer(StrictPayloadSerializer):
         instance.save()
 
         profile, _ = UserProfile.objects.get_or_create(user=instance)
-        for field, value in profile_data.items():
-            setattr(profile, field, value)
-        profile.save()
+        if profile_data:
+            for field, value in profile_data.items():
+                setattr(profile, field, value)
+            profile.save()
 
         return instance
