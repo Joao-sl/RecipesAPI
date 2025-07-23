@@ -1,6 +1,8 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from recipesAPI.models import Category, Ingredient, PreparationSteps, Recipe
+from recipesAPI.models import (Category, Ingredient, PreparationSteps, Recipe,
+                               UserProfile)
 from recipesAPI.serializers.common_serializer import StrictPayloadSerializer
 from recipesAPI.validators import recipe_validators
 
@@ -28,7 +30,26 @@ class CategorySerializer(StrictPayloadSerializer):
         fields = ['id', 'category_name', 'slug']
 
 
+class ProfileSerializer(StrictPayloadSerializer):
+    first_name = serializers.CharField(read_only=True)
+    last_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ['first_name', 'last_name']
+
+
+class UserSerializer(StrictPayloadSerializer):
+    profile = ProfileSerializer(read_only=True, allow_null=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'profile']
+
+
 class RecipeReadSerializer(StrictPayloadSerializer):
+    author = UserSerializer(read_only=True)
+    approved_by = UserSerializer(read_only=True, allow_null=True)
     ingredients = IngredientSerializer(read_only=True, many=True)
     preparation_steps = PreparationStepsSerializer(read_only=True, many=True)
     categories = CategorySerializer(read_only=True, many=True)
