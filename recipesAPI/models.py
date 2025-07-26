@@ -69,6 +69,12 @@ class RecipeManager(models.Manager):
 class Recipe(models.Model):
     objects = RecipeManager()
 
+    DIFFICULTY_CHOICES = [
+        ('E', 'Fácil'),
+        ('M', 'Médio'),
+        ('H', 'Difícil'),
+    ]
+
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=300)
     preparation_time = models.DurationField(
@@ -78,6 +84,11 @@ class Recipe(models.Model):
     cover = models.ImageField(upload_to='recipe_covers', null=True)
     slug = models.SlugField()
     categories = models.ManyToManyField(Category, blank=True)
+    difficulty = models.CharField(
+        max_length=2,
+        choices=DIFFICULTY_CHOICES,
+        default='M'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     tips = models.TextField(

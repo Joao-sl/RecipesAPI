@@ -33,10 +33,11 @@ class CategorySerializer(StrictPayloadSerializer):
 class ProfileSerializer(StrictPayloadSerializer):
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
+    avatar = serializers.ImageField(read_only=True)
 
     class Meta:
         model = UserProfile
-        fields = ['first_name', 'last_name']
+        fields = ['first_name', 'last_name', 'avatar']
 
 
 class UserSerializer(StrictPayloadSerializer):
@@ -53,14 +54,18 @@ class RecipeReadSerializer(StrictPayloadSerializer):
     ingredients = IngredientSerializer(read_only=True, many=True)
     preparation_steps = PreparationStepsSerializer(read_only=True, many=True)
     categories = CategorySerializer(read_only=True, many=True)
+    difficulty = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = [
-            'title', 'description', 'preparation_time', 'ingredients', 'preparation_steps',
+            'title', 'description',  'preparation_time', 'difficulty', 'ingredients', 'preparation_steps',
             'servings', 'categories', 'slug', 'author', 'tips', 'public', 'admin_approved',
             'approved_by', 'created_at', 'updated_at', 'cover',
         ]
+
+    def get_difficulty(self, obj):
+        return obj.get_difficulty_display()
 
 
 class RecipeWriteSerializer(StrictPayloadSerializer):
@@ -71,7 +76,7 @@ class RecipeWriteSerializer(StrictPayloadSerializer):
     class Meta:
         model = Recipe
         fields = [
-            'title', 'description', 'preparation_time', 'ingredients', 'preparation_steps',
+            'title', 'description', 'difficulty', 'preparation_time', 'ingredients', 'preparation_steps',
             'servings', 'categories', 'tips', 'cover',
         ]
 
