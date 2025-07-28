@@ -1,9 +1,11 @@
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
 
 from recipesAPI.filters import CategoryFilter
 from recipesAPI.mixins import AdminApprovalMixin
@@ -69,7 +71,7 @@ class PublicRecipesViewSet(ReadOnlyModelViewSet):
     serializer_class = RecipeReadSerializer
     http_method_names = ['get']
     lookup_field = 'slug'
-    search_fields = ['title']
+    search_fields = ['title', 'categories__category_name']
 
 
 class GetCategoriesViewSet(ReadOnlyModelViewSet):
@@ -137,3 +139,19 @@ class AdminRecipesViewSet(ModelViewSet, AdminApprovalMixin):
         )
 
         return Response(read_serializer.data)
+
+
+class StatsAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        User = get_user_model()
+        payload = {
+            'recipes_count': Recipe.objects.filter(
+                admin_approved=True,
+                public=True
+            ).count(),
+            'category_count': Category.objects.count(),
+            'user_count':    User.objects.count(),
+        }
+        return Response(payload)

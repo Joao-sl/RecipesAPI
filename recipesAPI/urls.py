@@ -10,7 +10,6 @@ app_name = 'recipesAPI'
 
 recipes_api_router = SimpleRouter()
 
-
 # Admin Recipes
 recipes_api_router.register(
     'api/recipes/admin',
@@ -51,6 +50,13 @@ recipes_api_router.register(
     basename='user'
 )
 urlpatterns = [
+    # Stats
+    path(
+        'api/stats/',
+        views.StatsAPIView.as_view(),
+        name='site-stats'
+    ),
+
     # Django JWT Token
     path(
         'user/token/',
