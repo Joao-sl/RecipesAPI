@@ -1,10 +1,10 @@
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
 
 from recipesAPI.filters import CategoryFilter
@@ -13,11 +13,12 @@ from recipesAPI.models import Category, Recipe
 from recipesAPI.permissions import CanEditOnlyUnprovedRecipes
 from recipesAPI.serializers.recipe_serializer import (
     AdminRecipeWriteSerializer, CategorySerializer, RecipeReadSerializer,
-    RecipeWriteSerializer)
+    RecipeWriteSerializer, StatsSerializer)
 
 
 class UserRecipesViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, CanEditOnlyUnprovedRecipes]
+    queryset = Recipe.objects.none()
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'slug'
@@ -141,8 +142,9 @@ class AdminRecipesViewSet(ModelViewSet, AdminApprovalMixin):
         return Response(read_serializer.data)
 
 
-class StatsAPIView(APIView):
+class StatsAPIView(GenericAPIView):
     permission_classes = [AllowAny]
+    serializer_class = StatsSerializer
 
     def get(self, request):
         User = get_user_model()
@@ -154,4 +156,5 @@ class StatsAPIView(APIView):
             'category_count': Category.objects.count(),
             'user_count':    User.objects.count(),
         }
-        return Response(payload)
+        serializer = self.get_serializer(payload)
+        return Response(serializer.data)

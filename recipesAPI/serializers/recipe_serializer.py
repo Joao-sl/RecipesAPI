@@ -7,6 +7,15 @@ from recipesAPI.serializers.common_serializer import StrictPayloadSerializer
 from recipesAPI.validators import recipe_validators
 
 
+class StatsSerializer(serializers.Serializer):
+    recipes_count = serializers.IntegerField()
+    category_count = serializers.IntegerField()
+    user_count = serializers.IntegerField()
+
+    class Meta:
+        ref_name = 'Stats'
+
+
 class IngredientSerializer(StrictPayloadSerializer):
     name = serializers.CharField(required=True)
     quantity = serializers.CharField(required=True)
@@ -40,7 +49,7 @@ class ProfileSerializer(StrictPayloadSerializer):
         fields = ['first_name', 'last_name', 'avatar']
 
 
-class UserSerializer(StrictPayloadSerializer):
+class ReadUserSerializer(StrictPayloadSerializer):
     profile = ProfileSerializer(read_only=True, allow_null=True)
 
     class Meta:
@@ -49,8 +58,8 @@ class UserSerializer(StrictPayloadSerializer):
 
 
 class RecipeReadSerializer(StrictPayloadSerializer):
-    author = UserSerializer(read_only=True)
-    approved_by = UserSerializer(read_only=True, allow_null=True)
+    author = ReadUserSerializer(read_only=True)
+    approved_by = ReadUserSerializer(read_only=True, allow_null=True)
     ingredients = IngredientSerializer(read_only=True, many=True)
     preparation_steps = PreparationStepsSerializer(read_only=True, many=True)
     categories = CategorySerializer(read_only=True, many=True)
@@ -64,7 +73,7 @@ class RecipeReadSerializer(StrictPayloadSerializer):
             'approved_by', 'created_at', 'updated_at', 'cover',
         ]
 
-    def get_difficulty(self, obj):
+    def get_difficulty(self, obj) -> str:
         return obj.get_difficulty_display()
 
 

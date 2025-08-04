@@ -37,11 +37,6 @@ recipes_api_router.register(
     views.GetCategoriesViewSet,
     basename='categories'
 )
-recipes_api_router.register(
-    'api/categories/all',
-    views.GetCategoriesViewSet,
-    basename='categories-all'
-)
 
 # User CRUD
 recipes_api_router.register(
