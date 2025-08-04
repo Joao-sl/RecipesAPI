@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_filters',
     'debug_toolbar',
+    'drf_spectacular',
 
     # My APPS
     'recipesAPI',
@@ -179,6 +180,7 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.SearchFilter',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'recipesAPI.pagination.RecipesAPIPageNumberPagination',
     'PAGE_SIZE': 25
 }
@@ -195,3 +197,11 @@ SIMPLE_JWT = {
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+# DRF-Spectacular
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Recipes API',
+    'DESCRIPTION': 'API to easily manage recipes, create, read, update and delete.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
